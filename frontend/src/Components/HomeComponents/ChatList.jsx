@@ -39,7 +39,13 @@ const ChatList = ({
             <hr />
             <ChatCard
               isChat={!item.group}
-              name={item.group ? item.chatName : auth.reqUser?.id !== item.users[0]?.id ? item.users[0]?.name : item.users[1]?.name}
+              name={
+                item.group 
+                  ? item.chatName 
+                  : auth.reqUser?.id !== item.users?.[0]?.id 
+                    ? item.users?.[0]?.name || "Unknown User"
+                    : item.users?.[1]?.name || "Unknown User"
+              }
               userImg={
                 item.chatImage ||
                 "https://media.istockphoto.com/id/1455296779/photo/smiling-businesspeople-standing-arm-in-arm-in-an-office-hall.webp?b=1&s=170667a&w=0&k=20&c=0bdu3-mVcOw6FN_vIkwTx4pCE6jgL7Jy29bBWZhoiik="

@@ -30,7 +30,7 @@ const ProfileSection = ({
           }
           alt="profile"
         />
-        <p>{auth.reqUser?.name}</p>
+        <p>{auth.reqUser?.name || "Loading..."}</p>
       </div>
       <div className="space-x-3 text-2xl flex">
         <TbCircleDashed

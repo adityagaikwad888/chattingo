@@ -55,6 +55,10 @@ function HomePage() {
       },
       onConnect: onConnect,
       onStompError: onError,
+      onDisconnect: () => {
+        console.log('STOMP client disconnected');
+        setIsConnected(false);
+      },
       debug: (str) => {
         console.log('STOMP: ' + str);
       },
@@ -129,8 +133,19 @@ function HomePage() {
   // Effect to handle sending a new message via WebSocket
   useEffect(() => {
     if (message.newMessage && isConnected && stompClient && currentChat?.id) {
-      stompClient.send("/app/message", {}, JSON.stringify(message.newMessage));
-      setMessages((prevMessages) => [...prevMessages, message.newMessage]);
+      try {
+        if (stompClient.connected) {
+          stompClient.publish({
+            destination: "/app/message",
+            body: JSON.stringify(message.newMessage)
+          });
+          setMessages((prevMessages) => [...prevMessages, message.newMessage]);
+        } else {
+          console.error('STOMP client is not connected');
+        }
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     }
   }, [message.newMessage, isConnected, stompClient, currentChat]);
 
@@ -243,10 +258,24 @@ function HomePage() {
 
   // Effect to check if the user is authenticated
   useEffect(() => {
-    if (!auth.reqUser) {
+    if (!auth.reqUser && token) {
+      // If we have a token but no user data, wait for it to load
+      return;
+    }
+    if (!auth.reqUser && !token) {
       navigate("/signin");
     }
-  }, [auth.reqUser]);
+  }, [auth.reqUser, token]);
+
+  // Show loading spinner while user data is being fetched
+  if (token && !auth.reqUser) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#00a884]">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
   return (
 
     <div className="relative">
@@ -318,10 +347,10 @@ function HomePage() {
                         currentChat.group
                           ? currentChat.chat_image ||
                           "https://media.istockphoto.com/id/521977679/photo/silhouette-of-adult-woman.webp?b=1&s=170667a&w=0&k=20&c=wpJ0QJYXdbLx24H5LK08xSgiQ3zNkCAD2W3F74qlUL0="
-                          : auth.reqUser?.id !== currentChat.users[0]?.id
-                            ? currentChat.users[0]?.profile ||
+                          : auth.reqUser?.id !== currentChat.users?.[0]?.id
+                            ? currentChat.users?.[0]?.profile ||
                             "https://media.istockphoto.com/id/521977679/photo/silhouette-of-adult-woman.webp?b=1&s=170667a&w=0&k=20&c=wpJ0QJYXdbLx24H5LK08xSgiQ3zNkCAD2W3F74qlUL0="
-                            : currentChat.users[1]?.profile ||
+                            : currentChat.users?.[1]?.profile ||
                             "https://media.istockphoto.com/id/521977679/photo/silhouette-of-adult-woman.webp?b=1&s=170667a&w=0&k=20&c=wpJ0QJYXdbLx24H5LK08xSgiQ3zNkCAD2W3F74qlUL0="
                       }
                       alt="profile"
@@ -329,9 +358,9 @@ function HomePage() {
                     <p>
                       {currentChat.group
                         ? currentChat.chatName
-                        : auth.reqUser?.id !== currentChat.users[0]?.id
-                          ? currentChat.users[0].name
-                          : currentChat.users[1].name}
+                        : auth.reqUser?.id !== currentChat.users?.[0]?.id
+                          ? currentChat.users?.[0]?.name || "Unknown User"
+                          : currentChat.users?.[1]?.name || "Unknown User"}
                     </p>
                   </div>
                   <div className="flex py-3 space-x-4 items-center px-3">
