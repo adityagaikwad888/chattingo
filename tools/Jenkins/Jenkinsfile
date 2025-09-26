@@ -307,47 +307,47 @@ pipeline {
             }
         }
         
-        stage('Kubernetes Deployment Preparation') {
-            when {
-                allOf {
-                    expression { params.DEPLOY_AFTER_BUILD == true }
-                    anyOf {
-                        branch 'main'
-                        branch 'develop'
-                    }
-                }
-            }
-            agent any
-            steps {
-                unstash 'source-code-with-env'
-                script {
-                    sh '''
-                        echo "Preparing Kubernetes deployment for ${TARGET_ENV}..."
+        // stage('Kubernetes Deployment Preparation') {
+        //     when {
+        //         allOf {
+        //             expression { params.DEPLOY_AFTER_BUILD == true }
+        //             anyOf {
+        //                 branch 'main'
+        //                 branch 'develop'
+        //             }
+        //         }
+        //     }
+        //     agent any
+        //     steps {
+        //         unstash 'source-code-with-env'
+        //         script {
+        //             sh '''
+        //                 echo "Preparing Kubernetes deployment for ${TARGET_ENV}..."
                         
-                        # Update Kubernetes manifests with environment-specific images
-                        if [ -d "k8s-kind" ]; then
-                            # Update image tags in deployments
-                            sed -i "s|adityagaikwad888/chattingo-backend:.*|adityagaikwad888/chattingo-backend:${TARGET_ENV}-${IMAGE_TAG}|g" k8s-kind/*.yaml
-                            sed -i "s|adityagaikwad888/chattingo-frontend:.*|adityagaikwad888/chattingo-frontend:${TARGET_ENV}-${IMAGE_TAG}|g" k8s-kind/*.yaml
+        //                 # Update Kubernetes manifests with environment-specific images
+        //                 if [ -d "k8s-kind" ]; then
+        //                     # Update image tags in deployments
+        //                     sed -i "s|adityagaikwad888/chattingo-backend:.*|adityagaikwad888/chattingo-backend:${TARGET_ENV}-${IMAGE_TAG}|g" k8s-kind/*.yaml
+        //                     sed -i "s|adityagaikwad888/chattingo-frontend:.*|adityagaikwad888/chattingo-frontend:${TARGET_ENV}-${IMAGE_TAG}|g" k8s-kind/*.yaml
                             
-                            # Create environment-specific deployment package
-                            echo "Creating deployment package for ${TARGET_ENV}..."
-                            cp .env.build k8s-kind/.env.${TARGET_ENV}
-                            tar -czf deployment-${TARGET_ENV}-${IMAGE_TAG}.tar.gz k8s-kind/
-                            ls -la deployment-*.tar.gz
-                        fi
+        //                     # Create environment-specific deployment package
+        //                     echo "Creating deployment package for ${TARGET_ENV}..."
+        //                     cp .env.build k8s-kind/.env.${TARGET_ENV}
+        //                     tar -czf deployment-${TARGET_ENV}-${IMAGE_TAG}.tar.gz k8s-kind/
+        //                     ls -la deployment-*.tar.gz
+        //                 fi
                         
-                        # Generate deployment summary
-                        echo "Deployment Summary for ${TARGET_ENV}:"
-                        echo "Backend Image: ${DOCKER_USERNAME}/chattingo-backend:${TARGET_ENV}-${IMAGE_TAG}"
-                        echo "Frontend Image: ${DOCKER_USERNAME}/chattingo-frontend:${TARGET_ENV}-${IMAGE_TAG}"
-                        echo "Environment: ${TARGET_ENV}"
-                        echo "Build: ${IMAGE_TAG}"
-                    '''
-                }
-                archiveArtifacts artifacts: 'deployment-*.tar.gz', allowEmptyArchive: true, fingerprint: true
-            }
-        }
+        //                 # Generate deployment summary
+        //                 echo "Deployment Summary for ${TARGET_ENV}:"
+        //                 echo "Backend Image: ${DOCKER_USERNAME}/chattingo-backend:${TARGET_ENV}-${IMAGE_TAG}"
+        //                 echo "Frontend Image: ${DOCKER_USERNAME}/chattingo-frontend:${TARGET_ENV}-${IMAGE_TAG}"
+        //                 echo "Environment: ${TARGET_ENV}"
+        //                 echo "Build: ${IMAGE_TAG}"
+        //             '''
+        //         }
+        //         archiveArtifacts artifacts: 'deployment-*.tar.gz', allowEmptyArchive: true, fingerprint: true
+        //     }
+        // }
         
         stage('Security & Quality Scan') {
             when {

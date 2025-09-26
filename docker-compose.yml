@@ -19,10 +19,10 @@ services:
 
   # Chattingo Backend Application
   chattingo-backend:
-    build:
-      context: ./backend/
-      dockerfile: Dockerfile
-    # image: adityagaikwad888/chattingo-backend:v1.0.0
+    # build:
+    #   context: ./backend/
+    #   dockerfile: Dockerfile
+    image: adityagaikwad888/chattingo-backend
     container_name: chattingo-backend
     depends_on:
       - mysql
@@ -54,15 +54,15 @@ services:
 
   # Chattingo Frontend Application
   chattingo-frontend:
-    build:
-      context: ./frontend/
-      dockerfile: Dockerfile
-    # image: adityagaikwad888/chattingo-frontend:v1.0.0
+    # build:
+    #   context: ./frontend/
+    #   dockerfile: Dockerfile
+    image: adityagaikwad888/chattingo-frontend:latest
     container_name: chattingo-frontend
     depends_on:
       - chattingo-backend
     environment:
-      - REACT_APP_API_URL=http://localhost:8080
+      - REACT_APP_API_URL=http://147.93.98.188:8080
       - REACT_APP_WS_URL=ws://localhost:8080
     ports:
       - "3000:80"
